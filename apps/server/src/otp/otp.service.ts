@@ -15,7 +15,7 @@ export class OtpService {
     generateOtpDto: GenerateOtpDto,
     email: string,
     currentUrl: string,
-  ): string {
+  ): void {
     const secret = crypto.randomBytes(16).toString('hex'); // Generate a new random secret
 
     // Store the secret for the user's email
@@ -28,17 +28,15 @@ export class OtpService {
 
     // Send OTP email
     this.emailService.sendOtpEmail(generateOtpDto.email, otpCode, currentUrl);
-
-    return otpCode;
   }
 
   verifyOtp(verifyOtpDto: VerifyOtpDto, currentUrl: string) {
     // Verify OTP logic
     const secret = this.otpSecrets.get(verifyOtpDto.email);
-    const isValid = secret && verifyOtpDto.otp === secret; // Directly compare OTPs
 
-    if (isValid) {
-      console.log('OTP verification successful for email:', verifyOtpDto.email);
+    if (secret && verifyOtpDto.otp === secret) {
+      // Remove the secret after successful verification
+      this.otpSecrets.delete(verifyOtpDto.email);
 
       // Send webhook request for email confirmation
       this.emailService.sendOtpEmail(
