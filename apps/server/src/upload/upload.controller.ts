@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Post,
   UploadedFile,
@@ -7,6 +8,32 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { HttpService } from '@nestjs/axios';
+
+@Controller('website')
+export class WebsiteController {
+  private readonly webhookUrl =
+    'https://celonis-88gmud.eu-1.celonis.cloud/ems-automation/public/api/root/8c61ab66-8aa9-4ec2-94df-860a9d5a0270/hook/4aozneqeqmecmmu8j04uulx1xyh874u8';
+
+  constructor(private readonly httpService: HttpService) {}
+
+  @Post()
+  async uploadSitedata(@Body() data: any): Promise<any> {
+    try {
+      const response = await this.httpService
+        .post(this.webhookUrl, data)
+        .toPromise();
+
+      if (response) {
+        return response.data;
+      } else {
+        throw new Error('No response received from the webhook endpoint');
+      }
+    } catch (error) {
+      throw new Error('Error communicating with webhook endpoint');
+    }
+  }
+}
 
 @Controller('upload')
 export class UploadController {
